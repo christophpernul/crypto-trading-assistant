@@ -67,6 +67,8 @@ def create_crypto_buy_table(all_trades: pd.DataFrame) -> pd.DataFrame:
                                                                "conversion_rate_received_spent_buy": "conversion_rate_received_spent"
                                                                }
                                                       )
+    # Assigns a sell_order for every currency ordered by date (oldest first)
+    buys["buy_order"] = buys.groupby("currency_buy")["date"].rank(method="first", ascending=True)
     return buys
 
 def create_crypto_sell_table(all_trades: pd.DataFrame) -> pd.DataFrame:
@@ -106,4 +108,6 @@ def create_crypto_sell_table(all_trades: pd.DataFrame) -> pd.DataFrame:
                                                                  }
                                                         )
     sells = sells.assign(amount_sell=sells.amount_sell * -1)
+    # Assigns a sell_order for every currency ordered by date (oldest first)
+    sells["sell_order"] = sells.groupby("currency_sell")["date"].rank(method="first", ascending=True)
     return sells
