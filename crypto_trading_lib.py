@@ -10,7 +10,7 @@ def load_data(crypto_path: str = "/home/chris/Dropbox/Finance/data/crypto/export
 def save_table(df: pd.DataFrame,
                filename: str,
                export_path: str = "/home/chris/Dropbox/Finance/data/crypto/exported/"):
-    df.to_csv(os.path.join(export_path, filename), sep=",")
+    df.to_csv(os.path.join(export_path, filename), sep=",", index=False)
 
 
 def create_trade_fee_table(all_trades: pd.DataFrame) -> pd.DataFrame:
@@ -69,6 +69,18 @@ def create_crypto_buy_table(all_trades: pd.DataFrame) -> pd.DataFrame:
                                                       )
     # Assigns a sell_order for every currency ordered by date (oldest first)
     buys["buy_order"] = buys.groupby("currency_buy")["date"].rank(method="first", ascending=True)
+    buys["amount_sell"] = buys["amount_buy"] * buys["conversion_rate_received_spent"]
+
+    # Calculate the cumsum of amount bought for every trading-pair sorted by date
+    buys.loc[:, ("amount_buy_cumsum")] = buys.sort_values("date").groupby(["currency_buy",
+                                                                           "currency_sell"
+                                                                           ]
+                                                                          )["amount_buy"].cumsum()
+    # Calculate the cumsum of amount sold for every trading-pair sorted by date
+    buys.loc[:, ("amount_sell_cumsum")] = buys.sort_values("date").groupby(["currency_sell",
+                                                                            "currency_buy"
+                                                                            ]
+                                                                           )["amount_sell"].cumsum()
     return buys
 
 def create_crypto_sell_table(all_trades: pd.DataFrame) -> pd.DataFrame:
